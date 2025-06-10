@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CX Optimized AI Assistant</title>
+    <style>
+        * {
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #374151 100%); 
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px; 
+        }
+
+        .chatbot-container {
+            width: 100%;
+            max-width: 500px; 
+            height: 700px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px); 
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chatbot-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #374151 100%);
+            color: white; 
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+
+        .chatbot-header::before {
+            content: '';
+            position: absolute; 
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.15)"/><circle cx="80" cy="30" r="1.5" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="70" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="60" cy="15" r="1.2" fill="rgba(255,255,255,0.08)"/></svg>'); 
+        }
+
+        .chatbot-header h2 {
+            font-size: 1.6rem;
+            margin-bottom: 8px; 
+            position: relative;
+            z-index: 1;
+            font-weight: 600;
+        }
+
+        .chatbot-header p {
+            font-size: 0.95rem;
+            opacity: 0.95; 
+            position: relative;
+            z-index: 1;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto; 
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeInUp 0.4s ease-out; 
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(25px); 
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0); 
+            }
+        }
+
+        .message.bot {
+            text-align: left; 
+        }
+
+        .message.user {
+            text-align: right; 
+        }
+
+        .message-content {
+            display: inline-block;
+            max-width: 85%; 
+            padding: 15px 18px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
+        }
+
+        .message.bot .message-content {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border: 1px solid rgba(30, 58, 138, 0.15); 
+            color: #334155;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #1e3a8a 0%, #374151 100%);
+            color: white; 
+        }
+
+        .input-area {
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.95); 
+            border-top: 1px solid rgba(30, 58, 138, 0.15); 
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px; 
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 14px 18px; 
+            border: 2px solid rgba(30, 58, 138, 0.2);
+            border-radius: 25px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9); 
+        }
+
+        .input-field:focus {
+            border-color: #1e3a8a;
+            box-shadow: 0 0 0 3px rgba(30, 58, 138, 0.1); 
+        }
+
+        .send-button {
+            padding: 14px 22px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #374151 100%); 
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 8px rgba(30, 58, 138, 0.3); 
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px); 
+            box-shadow: 0 8px 20px rgba(30, 58, 138, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0); 
+        }
+
+        .quick-options {
+            display: flex;
+            flex-wrap: wrap; 
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .quick-option {
+            padding: 10px 15px;
+            background: rgba(30, 58, 138, 0.08); 
+            border: 1px solid rgba(30, 58, 138, 0.25);
+            border-radius: 18px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.3s ease; 
+            color: #1e3a8a;
+            font-weight: 500;
+        }
+
+        .quick-option:hover {
+            background: linear-gradient(135deg, #1e3a8a 0%, #374151 100%);
+            color: white; 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3); 
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center; 
+            gap: 8px;
+            margin-bottom: 20px;
+            padding-left: 15px;
+        }
+
+        .typing-indicator.active {
+            display: flex; 
+        }
+
+        .typing-dot {
+            width: 10px; 
+            height: 10px;
+            background: #1e3a8a;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out; 
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s; 
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s; 
+        }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5; 
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1; 
+            }
+        }
+
+        .service-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+            border: 1px solid rgba(30, 58, 138, 0.2); 
+            border-radius: 15px;
+            padding: 18px;
+            margin: 12px 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); 
+            transition: all 0.3s ease; 
+        }
+
+        .service-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12); 
+        }
+
+        .service-card h4 {
+            color: #1e3a8a;
+            margin-bottom: 10px; 
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .service-card p {
+            font-size: 0.9rem;
+            line-height: 1.4; 
+            color: #555;
+            margin-bottom: 12px;
+        }
+
+        .price-tag {
+            background: linear-gradient(135deg, #1e3a8a 0%, #374151 100%);
+            color: white; 
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-block; 
+        }
+
+        .risk-score {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white; 
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-block;
+            margin: 8px 0; 
+        }
+
+        .risk-score.medium {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); 
+        }
+
+        .risk-score.low {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+        }
+
+        .assessment-button {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white; 
+            padding: 12px 20px;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 10px 5px;
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3); 
+        }
+
+        .assessment-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(5, 150, 105, 0.4); 
+        }
+
+        .consultation-button {
+            background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            color: white; 
+            padding: 12px 20px;
+            border: none;
+            border-radius: 18px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin: 10px 5px;
+            transition: all 0.3s ease; 
+            box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
+            text-decoration: none;
+            display: inline-block; 
+        }
+
+        .consultation-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4); 
+            text-decoration: none;
+            color: white; 
+        }
+
+        .checklist-item {
+            background: rgba(248, 250, 252, 0.8);
+            border: 1px solid rgba(30, 58, 138, 0.1); 
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin: 5px 0;
+            font-size: 0.85rem;
+            color: #334155; 
+        }
+
+        .scroll-to-bottom {
+            animation: scrollHint 2s ease-in-out infinite; 
+        }
+
+        @keyframes scrollHint {
+            0%, 100% { opacity: 0.7;  }
+            50% { opacity: 1;  }
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot-container">
+        <div class="chatbot-header">
+            <h2>🎯 CX Optimized AI Assistant</h2>
+            <p>Assessment Analysis • Service Recommendations • Expert Guidance</p>
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot"> 
+                <div class="message-content">
+                    Welcome to CX Optimized!
+                    I'm your AI assistant, ready to help you with: 
+                    <br><br>
+                    🔍 <strong>Assessment Analysis</strong> - Analyze your AI audit results<br>
+                    📊 <strong>Service Matching</strong> - Find the perfect CX solution<br>
+                    💡 <strong>Expert Guidance</strong> - Get insights from our 10+ years of experience<br> 
+                    <br>
+                    How can I help you today?
+                </div> 
+            </div>
+            <div class="quick-options" id="quickOptions">
+                <div class="quick-option" onclick="selectQuickOption('Take AI Risk Assessment')">🎯 Take Assessment</div>
+                <div class="quick-option" onclick="selectQuickOption('Analyze my audit results')">📊 Analyze Results</div>
+                <div class="quick-option" onclick="selectQuickOption('Tell me about your services')">🛠️ Our Services</div>
+                <div class="quick-option" onclick="openCalendly()">📅 Get Consultation</div> 
+            </div>
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div> 
+        </div>
+        
+        <div class="input-area"> 
+            <div class="input-container">
+                <input type="text" class="input-field" id="messageInput" placeholder="Ask about assessments, services, or share your results...">
+                <button class="send-button" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let conversationState = {
+            stage: 'initial',
+            assessmentMode: false,
+            currentQuestion: 0,
+            responses: {},
+            userProfile: {
+                industry: null, [cite: 80]
+                businessSize: null,
+                issues: [],
+                priorities: []
+            }
+        };
+
+        const services = {
+            'AI CX Auditing': {
+                description: 'Comprehensive AI system assessment including hallucination detection, bias auditing, and performance optimization. Perfect for businesses using chatbots, virtual assistants, or AI-powered customer service.', [cite: 81, 82]
+                price: 'Starting at $2,500',
+                bestFor: ['AI accuracy issues', 'bias detection', 'chatbot optimization', 'AI compliance', 'hallucination problems'],
+                includes: ['25-point AI audit', 'Bias detection testing', 'Performance benchmarking', 'Compliance review', 'Detailed remediation plan']
+            },
+            'Employee CX Optimization': {
+                description: 'Transform your team into CX champions through targeted training, workflow optimization, and internal experience enhancement. Based on luxury brand standards.', [cite: 83, 84]
+                price: 'Starting at $1,800',
+                bestFor: ['employee training', 'workflow optimization', 'internal communication', 'team empowerment', 'service consistency'],
+                includes: ['Employee experience audit', 'Custom training programs', 'Workflow optimization', 'Performance tracking', 'Ongoing support']
+            },
+            'CX Strategy Consulting': {
+                description: 'Data-driven strategic roadmap development with customer journey mapping, pain point analysis, and transformation planning. Luxury brand expertise applied to your business.', [cite: 85, 86]
+                price: 'Starting at $3,200',
+                bestFor: ['strategy development', 'customer journey mapping', 'pain point analysis', 'culture transformation', 'competitive positioning'],
+                includes: ['Strategic assessment', 'Journey mapping', 'Pain point analysis', 'Implementation roadmap', 'ROI projections']
+            },
+            'Mystery Shopping Audit': {
+                description: 'Professional multi-channel evaluation across phone, in-person, and online touchpoints. Currently offering BOGO special for comprehensive coverage.', [cite: 87, 88]
+                price: 'BOGO Special - Starting at $800',
+                bestFor: ['service quality assessment', 'brand standards compliance', 'multi-channel evaluation', 'competitive analysis', 'staff performance'],
+                includes: ['Multi-channel evaluation', 'Detailed scorecards', 'Competitor benchmarking', 'Staff feedback', 'Action plan']
+            },
+            'Professional Business Photos': {
+                description: 'High-quality professional photography for Google Business Profile, websites, and marketing materials. Enhance your brand image with premium visuals.', [cite: 89, 90]
+                price: 'Starting at $500',
+                bestFor: ['brand image', 'online presence', 'professional marketing', 'team photography', 'facility showcasing'],
+                includes: ['Professional photo session', 'Team and facility shots', 'Google Business optimization', 'Marketing-ready images', 'Usage rights']
+            }
+        }; [cite: 91]
+
+        const assessmentQuestions = [
+            {
+                category: 'Data & Accuracy',
+                questions: [
+                    'Does your AI generate false information that sounds plausible?',
+                    'Can you trace every AI response back to verified sources?', [cite: 92]
+                    'Is your AI using current, up-to-date information?',
+                    'Does your AI give consistent answers to the same question?',
+                    'Do you have a fact-checking system for AI responses?'
+                ] [cite: 93]
+            },
+            {
+                category: 'Bias & Fairness',
+                questions: [
+                    'Have you tested for gender bias in AI responses?',
+                    'Have you checked for racial/ethnic bias?', [cite: 94]
+                    'Does your AI treat customers of all ages equally?',
+                    'Is there socioeconomic bias in AI recommendations?',
+                    'Does your AI provide equal service across regions?'
+                ] [cite: 95]
+            },
+            {
+                category: 'Brand & Communication',
+                questions: [
+                    'Is your AI\'s tone consistent with brand guidelines?',
+                    'Have you filtered inappropriate language capabilities?', [cite: 96]
+                    'Does your AI avoid promoting competitors?',
+                    'Is your AI using customer-friendly language?',
+                    'Does your AI respect cultural differences?'
+                ] [cite: 97]
+            },
+            {
+                category: 'Privacy & Compliance',
+                questions: [
+                    'Is personal information properly protected?',
+                    'Do you have proper data retention policies?', [cite: 98]
+                    'Are consent mechanisms properly implemented?',
+                    'Do you comply with international data laws?',
+                    'Is financial information securely handled?'
+                ] [cite: 99]
+            },
+            {
+                category: 'Performance & Reliability',
+                questions: [
+                    'Does your AI respond quickly and consistently?',
+                    'Have you tested system performance under load?', [cite: 100]
+                    'Can customers easily escalate to human support?',
+                    'Does your AI handle errors gracefully?',
+                    'Is continuous learning properly managed?'
+                ] [cite: 101]
+            }
+        ];
+
+        function openCalendly() {
+            window.open('https://calendly.com/cxoptimized/30min', '_blank'); [cite: 102]
+        }
+
+        function addMessage(content, isUser = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div'); [cite: 104]
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content; [cite: 105]
+            
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            document.getElementById('typingIndicator').classList.add('active');
+            const messagesContainer = document.getElementById('chatMessages'); [cite: 106]
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTyping() {
+            document.getElementById('typingIndicator').classList.remove('active'); [cite: 107]
+        }
+        
+        function removeQuickOptions() {
+            const quickOptions = document.getElementById('quickOptions');
+            if (quickOptions) {
+                quickOptions.remove();
+            }
+        }
+
+        function createServiceCard(serviceName, service, relevanceScore = null) {
+            let relevanceText = '';
+            if (relevanceScore) { [cite: 108]
+                relevanceText = `<div style="color: #059669; font-weight: 600; font-size: 0.8rem; margin-bottom: 8px;">🎯 ${relevanceScore}% Match for Your Needs</div>`; [cite: 109]
+            }
+            
+            return `
+                <div class="service-card">
+                    ${relevanceText}
+                    <h4>${serviceName}</h4>
+                    <p>${service.description}</p> 
+                    <div style="margin: 10px 0;">
+                        <strong style="color: #1e3a8a; font-size: 0.85rem;">Includes:</strong><br>
+                        <div style="font-size: 0.8rem; color: #666; margin-top: 5px;">
+                            ${service.includes.map(item => `• ${item}`).join('<br>')} 
+                        </div>
+                    </div>
+                    <div class="price-tag">${service.price}</div>
+                </div>
+            `; [cite: 112]
+        }
+
+        function calculateRiskScore(responses) {
+            const totalQuestions = 25;
+            const positiveResponses = Object.values(responses).filter(r => r === 'yes').length; [cite: 113]
+            const score = Math.round((positiveResponses / totalQuestions) * 100);
+            
+            let riskLevel, riskClass;
+            if (score >= 80) { [cite: 114]
+                riskLevel = 'LOW RISK';
+                riskClass = 'low'; [cite: 115]
+            } else if (score >= 60) {
+                riskLevel = 'MEDIUM RISK';
+                riskClass = 'medium'; [cite: 116]
+            } else if (score >= 40) {
+                riskLevel = 'HIGH RISK';
+                riskClass = ''; [cite: 117]
+            } else {
+                riskLevel = 'CRITICAL RISK';
+                riskClass = ''; [cite: 118]
+            }
+            
+            return { score, riskLevel, riskClass }; [cite: 119]
+        }
+
+        function analyzeAssessmentResults(responses) {
+            const riskData = calculateRiskScore(responses); [cite: 120]
+            const categories = assessmentQuestions.map(cat => cat.category);
+            const issues = [];
+            categories.forEach((category, catIndex) => { [cite: 121]
+                const categoryQuestions = assessmentQuestions[catIndex].questions;
+                const categoryResponses = categoryQuestions.map((_, qIndex) => 
+                    responses[`${catIndex}-${qIndex}`] === 'yes' ? 1 : 0
+                );
+                const categoryScore = categoryResponses.reduce((a, b) => a + b, 0) / categoryQuestions.length; [cite: 122]
+                
+                if (categoryScore < 0.6) {
+                    issues.push(category.toLowerCase().replace(/ & /g, '_').replace(/ /g, '_'));
+                }
+            }); [cite: 123]
+            
+            return { riskData, issues };
+        }
+
+        function recommendServicesFromAssessment(analysisResults) {
+            const { riskData, issues } = analysisResults;
+            let recommendations = []; [cite: 124]
+            let reasonings = [];
+            
+            if (issues.includes('data_accuracy') || riskData.score < 60) {
+                recommendations.push({ service: 'AI CX Auditing', relevance: 95 });
+                reasonings.push('Critical AI accuracy and data issues detected'); [cite: 125]
+            }
+            
+            if (issues.includes('bias_fairness')) {
+                if (!recommendations.find(r => r.service === 'AI CX Auditing')) {
+                    recommendations.push({ service: 'AI CX Auditing', relevance: 90 }); [cite: 126]
+                }
+                reasonings.push('Bias and fairness concerns require immediate attention'); [cite: 127]
+            }
+            
+            if (issues.includes('brand_communication')) {
+                recommendations.push({ service: 'Employee CX Optimization', relevance: 85 });
+                reasonings.push('Brand communication inconsistencies identified'); [cite: 128]
+            }
+            
+            if (issues.includes('privacy_compliance')) {
+                recommendations.push({ service: 'CX Strategy Consulting', relevance: 90 });
+                reasonings.push('Compliance gaps need strategic addressing'); [cite: 129]
+            }
+            
+            if (issues.includes('performance_reliability')) {
+                recommendations.push({ service: 'CX Strategy Consulting', relevance: 80 });
+                reasonings.push('Performance issues require systematic improvement'); [cite: 130]
+            }
+            
+            recommendations.push({ service: 'Mystery Shopping Audit', relevance: 75 });
+            reasonings.push('Comprehensive evaluation needed to validate improvements'); [cite: 131]
+            
+            const uniqueRecommendations = recommendations.reduce((acc, curr) => {
+                const existing = acc.find(r => r.service === curr.service);
+                if (!existing) {
+                    acc.push(curr);
+                } else if (curr.relevance > existing.relevance) {
+                    existing.relevance = curr.relevance; [cite: 132]
+                }
+                return acc;
+            }, []);
+            return { [cite: 133]
+                recommendations: uniqueRecommendations.sort((a, b) => b.relevance - a.relevance).slice(0, 3),
+                reasonings: reasonings.slice(0, 3)
+            };
+        }
+
+        function analyzeUserInput(input) {
+            const keywords = {
+                'AI': ['ai', 'artificial intelligence', 'chatbot', 'bot', 'automation', 'algorithm', 'machine learning'],
+                'Employee': ['employee', 'staff', 'team', 'training', 'workflow', 'internal', 'personnel'],
+                'Strategy': ['strategy', 'planning', 'roadmap', 'direction', 'goals', 'vision', 'transformation'],
+                'Audit': ['audit', 'assessment', 'evaluation', 'review', 'analysis', 'mystery shopping'], [cite: 135]
+                'Photos': ['photo', 'image', 'picture', 'visual', 'branding', 'marketing', 'professional photos'],
+                'Compliance': ['compliance', 'gdpr', 'privacy', 'legal', 'regulation', 'law'],
+                'Performance': ['performance', 'speed', 'reliability', 'uptime', 'response time']
+            };
+            const issues = {
+                'accuracy': ['wrong', 'incorrect', 'false', 'inaccurate', 'hallucination', 'made up'],
+                'bias': ['bias', 'discrimination', 'unfair', 'prejudice', 'unequal'],
+                'inconsistent': ['inconsistent', 'varies', 'different', 'mixed', 'uneven', 'conflicting'],
+                'complaints': ['complaints', 'negative', 'unhappy', 'dissatisfied', 'problems', 'issues'],
+                'training_needed': ['training', 'knowledge', 'skills', 'education', 'development', 'improvement'], [cite: 137]
+                'slow': ['slow', 'delay', 'timeout', 'lag', 'wait', 'loading'],
+                'privacy': ['privacy', 'data protection', 'confidential', 'secure', 'leak']
+            };
+            let detectedCategories = []; [cite: 138]
+            let detectedIssues = [];
+
+            for (let category in keywords) {
+                if (keywords[category].some(keyword => input.toLowerCase().includes(keyword))) {
+                    detectedCategories.push(category); [cite: 139]
+                }
+            }
+
+            for (let issue in issues) {
+                if (issues[issue].some(keyword => input.toLowerCase().includes(keyword))) {
+                    detectedIssues.push(issue); [cite: 140]
+                }
+            }
+
+            return { categories: detectedCategories, issues: detectedIssues }; [cite: 141]
+        }
+
+        function generateServiceRecommendations(analysis, includeRelevance = false) {
+            let recommendations = [];
+            if (analysis.categories.includes('AI')) { [cite: 142]
+                recommendations.push({ service: 'AI CX Auditing', relevance: 90 }); [cite: 143]
+            }
+            if (analysis.categories.includes('Employee')) {
+                recommendations.push({ service: 'Employee CX Optimization', relevance: 85 }); [cite: 144]
+            }
+            if (analysis.categories.includes('Strategy')) {
+                recommendations.push({ service: 'CX Strategy Consulting', relevance: 88 }); [cite: 145]
+            }
+            if (analysis.categories.includes('Audit')) {
+                recommendations.push({ service: 'Mystery Shopping Audit', relevance: 82 }); [cite: 146]
+            }
+            if (analysis.categories.includes('Photos')) {
+                recommendations.push({ service: 'Professional Business Photos', relevance: 75 }); [cite: 147]
+            }
+
+            if (analysis.issues.includes('training_needed')) {
+                if (!recommendations.find(r => r.service === 'Employee CX Optimization')) {
+                    recommendations.push({ service: 'Employee CX Optimization', relevance: 88 }); [cite: 148]
+                }
+            }
+            if (analysis.issues.includes('accuracy') || analysis.issues.includes('bias')) {
+                if (!recommendations.find(r => r.service === 'AI CX Auditing')) {
+                    recommendations.push({ service: 'AI CX Auditing', relevance: 95 }); [cite: 149]
+                }
+            }
+            if (analysis.issues.includes('inconsistent') || analysis.issues.includes('complaints')) {
+                if (!recommendations.find(r => r.service === 'Mystery Shopping Audit')) {
+                    recommendations.push({ service: 'Mystery Shopping Audit', relevance: 85 }); [cite: 150]
+                }
+                if (!recommendations.find(r => r.service === 'CX Strategy Consulting')) {
+                    recommendations.push({ service: 'CX Strategy Consulting', relevance: 87 }); [cite: 151]
+                }
+            }
+
+            if (recommendations.length === 0) {
+                recommendations = [
+                    { service: 'CX Strategy Consulting', relevance: 80 },
+                    { service: 'Mystery Shopping Audit', relevance: 75 } [cite: 152]
+                ]; [cite: 153]
+            }
+
+            return recommendations
+                .sort((a, b) => b.relevance - a.relevance)
+                .slice(0, 3); [cite: 154]
+        }
+        
+        // --- Main Interactive Functions ---
+        
+        document.getElementById('messageInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const inputField = document.getElementById('messageInput');
+            let userInput = inputField.value.trim();
+            if (userInput === '') return;
+
+            addMessage(userInput, true);
+            inputField.value = '';
+            removeQuickOptions();
+            showTyping();
+
+            setTimeout(() => {
+                getBotResponse(userInput);
+                hideTyping();
+            }, 1200);
+        }
+
+        function selectQuickOption(text) {
+            addMessage(text, true);
+            removeQuickOptions();
+            showTyping();
+            
+            setTimeout(() => {
+                getBotResponse(text);
+                hideTyping();
+            }, 1200);
+        }
+
+        function askNextQuestion() {
+            if (conversationState.currentQuestion >= 25) {
+                // End of assessment
+                const analysis = analyzeAssessmentResults(conversationState.responses);
+                const recommendations = recommendServicesFromAssessment(analysis);
+                const { score, riskLevel, riskClass } = analysis.riskData;
+
+                let response = `<h3>Assessment Complete!</h3>` +
+                               `<p>Thank you for completing the AI Risk Assessment. Here is your result:</p>` +
+                               `<div class="risk-score ${riskClass}">Your Score: ${score}% - ${riskLevel}</div>`;
+
+                if (analysis.issues.length > 0) {
+                    response += `<p><strong>Key areas needing attention:</strong><br>${analysis.issues.map(i => `• ${i.replace(/_/g, ' ')}`).join('<br>')}</p><br>`;
+                }
+
+                addMessage(response);
+                
+                let recommendationResponse = `<h4>Recommended Services For You:</h4>` +
+                                             `<p>Based on your results, here are the top services we believe will provide the most value:</p>`;
+                recommendations.recommendations.forEach(rec => {
+                    recommendationResponse += createServiceCard(rec.service, services[rec.service], rec.relevance);
+                });
+                
+                recommendationResponse += `<p>Ready to discuss these results? A complimentary consultation can help clarify the next steps.</p>` +
+                                          `<button class="consultation-button" onclick="openCalendly()">📅 Book a Free Consultation</button>`;
+
+                addMessage(recommendationResponse);
+                resetConversation();
+                return;
+            }
+
+            const catIndex = Math.floor(conversationState.currentQuestion / 5);
+            const qIndex = conversationState.currentQuestion % 5;
+            const category = assessmentQuestions[catIndex].category;
+            const question = assessmentQuestions[catIndex].questions[qIndex];
+
+            let questionHtml = '';
+            if (qIndex === 0) {
+                questionHtml += `<h4>Category: ${category}</h4>`;
+            }
+            questionHtml += `<p>${question}</p>`;
+            
+            addMessage(questionHtml);
+            
+            const messagesContainer = document.getElementById('chatMessages');
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'quick-options';
+            optionsDiv.innerHTML = `
+                <div class="quick-option" onclick="answerQuestion('yes', ${catIndex}, ${qIndex})">Yes</div>
+                <div class="quick-option" onclick="answerQuestion('no', ${catIndex}, ${qIndex})">No</div>
+            `;
+            messagesContainer.appendChild(optionsDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function answerQuestion(answer, catIndex, qIndex) {
+            addMessage(answer.charAt(0).toUpperCase() + answer.slice(1), true);
+            removeQuickOptions();
+            showTyping();
+
+            conversationState.responses[`${catIndex}-${qIndex}`] = answer;
+            conversationState.currentQuestion++;
+
+            setTimeout(() => {
+                hideTyping();
+                askNextQuestion();
+            }, 1000);
+        }
+        
+        function resetConversation() {
+            conversationState.stage = 'initial';
+            conversationState.assessmentMode = false;
+            conversationState.currentQuestion = 0;
+            conversationState.responses = {};
+        }
+
+        function getBotResponse(userInput) {
+            const input = userInput.toLowerCase(); [cite: 155]
+
+            if (conversationState.assessmentMode) {
+                // This path should ideally not be hit if using buttons, but as a fallback.
+                if (input === 'yes' || input === 'no') {
+                     const catIndex = Math.floor(conversationState.currentQuestion / 5);
+                     const qIndex = conversationState.currentQuestion % 5;
+                     answerQuestion(input, catIndex, qIndex);
+                } else {
+                    addMessage("Please answer with 'Yes' or 'No' to continue the assessment.");
+                }
+                return;
+            }
+            
+            if (input.includes('take') && input.includes('assessment')) {
+                conversationState.assessmentMode = true;
+                conversationState.stage = 'assessment_started';
+                let response = "Great! Let's start the <strong>AI Risk Assessment</strong>. It consists of 25 'Yes/No' questions across 5 categories. Please answer honestly to get the most accurate result.<br><br>Ready to begin?";
+                addMessage(response);
+
+                const messagesContainer = document.getElementById('chatMessages');
+                const optionsDiv = document.createElement('div');
+                optionsDiv.className = 'quick-options';
+                optionsDiv.innerHTML = `<div class="quick-option" onclick="startAssessment()">🚀 Let's Start!</div>`;
+                messagesContainer.appendChild(optionsDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            } else if (input.includes('services')) {
+                let response = "We offer a range of specialized CX services. Here are a few of our core offerings:";
+                for (const serviceName in services) {
+                    response += createServiceCard(serviceName, services[serviceName]);
+                }
+                response += `<p>If you'd like to know which is best for you, feel free to describe your business needs or take our AI Risk Assessment!</p>` +
+                            `<button class="consultation-button" onclick="openCalendly()">📅 Get a Personalized Recommendation</button>`;
+                addMessage(response);
+            } else if (input.includes('hello') || input.includes('hi')) {
+                 addMessage("Hello there! How can I assist you today? You can ask me about our services, take an AI risk assessment, or get a free consultation.");
+            } else {
+                // Default to keyword analysis for recommendations
+                const analysis = analyzeUserInput(input);
+                if (analysis.categories.length > 0 || analysis.issues.length > 0) {
+                    const recommendations = generateServiceRecommendations(analysis, true);
+                    let response = `Based on your query, I've identified some services that might be a great fit for you:`;
+                    recommendations.forEach(rec => {
+                        response += createServiceCard(rec.service, services[rec.service], rec.relevance);
+                    });
+                    response += `<p>Would you like to dive deeper into any of these, or perhaps book a free consultation to discuss your specific needs?</p>` +
+                                `<button class="consultation-button" onclick="openCalendly()">📅 Book a Free Consultation</button>`;
+                    addMessage(response);
+                } else {
+                    addMessage("I'm sorry, I'm not sure how to help with that. You can ask me to 'list services', 'start assessment', or you can book a consultation to speak with a human expert.");
+                }
+            }
+        }
+        
+        function startAssessment() {
+            removeQuickOptions();
+            showTyping();
+            setTimeout(() => {
+                hideTyping();
+                askNextQuestion();
+            }, 1000);
+        }
+
+    </script>
+</body>
+</html>
